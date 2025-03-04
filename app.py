@@ -145,6 +145,9 @@ def tokenize():
         table_name = f"{client_id}_tokens"
         save_tokens_to_db(table_name, tokens)
 
+        # Clear the cache for the client's tokenized entries
+        cache.delete_memoized(fetch_tokenized_entries, client_id)
+
         return render_template(
             "dashboard.html",
             tokenize_response=tokens,
