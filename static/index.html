@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tokenization System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+
+    <div class="w-full max-w-md bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-bold text-center mb-6">Client Login</h2>
+        
+        <!-- Login Form -->
+        <form id="loginForm" class="space-y-4">
+            <input type="text" id="client_id" class="w-full p-2 border rounded" placeholder="Client ID" required>
+            <input type="password" id="password" class="w-full p-2 border rounded" placeholder="Password" required>
+            <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">Login</button>
+        </form>
+
+        <div id="loginMessage" class="mt-4 text-center text-sm text-red-500"></div>
+
+        <hr class="my-6">
+
+        <!-- Tokenization Form -->
+        <h2 class="text-xl font-semibold text-center mb-4">Tokenization</h2>
+        <form id="tokenizeForm" class="space-y-4">
+            <input type="text" id="ghana_card_number" class="w-full p-2 border rounded" placeholder="Ghana Card Number" required>
+            <input type="text" id="phone_number" class="w-full p-2 border rounded" placeholder="Phone Number" required>
+            <button type="submit" class="w-full bg-green-500 text-white p-2 rounded">Generate Token</button>
+        </form>
+
+        <div id="tokenResult" class="mt-4 text-sm text-gray-700"></div>
+
+        <hr class="my-6">
+
+        <!-- Detokenization Form -->
+        <h2 class="text-xl font-semibold text-center mb-4">Detokenization</h2>
+        <form id="detokenizeForm" class="space-y-4">
+            <input type="text" id="token" class="w-full p-2 border rounded" placeholder="Enter Token" required>
+            <button type="submit" class="w-full bg-purple-500 text-white p-2 rounded">Retrieve Data</button>
+        </form>
+
+        <div id="detokenResult" class="mt-4 text-sm text-gray-700"></div>
+
+    </div>
+
+    <script>
+        const apiBase = "http://127.0.0.1:5000";
+
+        // Handle login
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const client_id = document.getElementById("client_id").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch(`${apiBase}/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ client_id, password }),
+                credentials: "include"
+            });
+
+            const data = await response.json();
+            document.getElementById("loginMessage").textContent = data.message || data.error;
+        });
+
+        // Handle tokenization
+        document.getElementById("tokenizeForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const ghana_card_number = document.getElementById("ghana_card_number").value;
+            const phone_number = document.getElementById("phone_number").value;
+
+            const response = await fetch(`${apiBase}/tokenize`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ghana_card_number, phone_number }),
+                credentials: "include"
+            });
+
+            const data = await response.json();
+            if (data.token) {
+                document.getElementById("tokenResult").innerHTML = `
+                    <p class="text-green-600 font-semibold">Token Generated Successfully:</p>
+                    <p><strong>Token:</strong> ${data.token}</p>
+                    <p><strong>Name:</strong> ${data.first_name} ${data.last_name}</p>
+                    <p><strong>Address:</strong> ${data.address}</p>
+                    <p><strong>Phone:</strong> ${data.phone_number}</p>
+                `;
+            } else {
+                document.getElementById("tokenResult").textContent = data.error;
+            }
+        });
+
+        // Handle detokenization
+        document.getElementById("detokenizeForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const token = document.getElementById("token").value;
+
+            const response = await fetch(`${apiBase}/detokenize`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token }),
+                credentials: "include"
+            });
+
+            const data = await response.json();
+            if (data.ghana_card_number) {
+                document.getElementById("detokenResult").innerHTML = `
+                    <p class="text-blue-600 font-semibold">Detokenized Data:</p>
+                    <p><strong>Ghana Card Number:</strong> ${data.ghana_card_number}</p>
+                    <p><strong>Name:</strong> ${data.first_name} ${data.last_name}</p>
+                    <p><strong>Address:</strong> ${data.address}</p>
+                    <p><strong>Phone:</strong> ${data.phone_number}</p>
+                `;
+            } else {
+                document.getElementById("detokenResult").textContent = data.error;
+            }
+        });
+    </script>
+
+</body>
+</html>

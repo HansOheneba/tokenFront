@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+     <style>
+      /* Disable text selection */
+      body {
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera and Firefox */
+      }
+
+      /* Enable text selection for token */
+      .selectable {
+        -webkit-user-select: text; /* Safari */
+        -moz-user-select: text; /* Firefox */
+        -ms-user-select: text; /* Internet Explorer/Edge */
+        user-select: text; /* Non-prefixed version, currently supported by Chrome, Opera and Firefox */
+      }
+
+      .loader {
+        border: 4px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 4px solid #3498db;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .client-id {
+        position: absolute;
+        top: 20px;
+        left: 30%;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 8px 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        font-size: 14px;
+        color: #4a5568;
+      }
+
+      .primary-button {
+        background-color: #3b82f6;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+      }
+
+      .primary-button:hover {
+        background-color: #2563eb;
+      }
+
+      .secondary-button {
+        background-color: #6b7280;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: background-color 0.3s ease;
+      }
+
+      .secondary-button:hover {
+        background-color: #4b5563;
+      }
+
+      .table-row:hover {
+        background-color: #f9fafb;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-100 flex items-center justify-center min-h-screen relative"
+  >
+    <div class="client-id">Logged in as: <strong>{{ client_id }}</strong></div>
+    <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-4xl">
+      <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+        Client Dashboard
+      </h1>
+
+      <!-- Action Buttons -->
+       <div class="flex justify-center space-x-4 mb-6">
+        <button
+          onclick="openTokenizePopup()"
+          class="primary-button"
+        >
+          Verify
+        </button>
+
+        <form action="/logout" method="POST">
+          <button
+            type="submit"
+            class="secondary-button"
+          >
+            Logout
+          </button>
+        </form>
+      </div>
+
+      <!-- Display Error Message -->
+      {% if error %}
+      <div
+        class="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded shadow"
+      >
+        <h3 class="text-lg font-bold mb-2">Error</h3>
+        <p>{{ error }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Display Success Message -->
+      {% if success %}
+      <div
+        class="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow"
+      >
+        <h3 class="text-lg font-bold mb-2">Success</h3>
+        <p>{{ success }}</p>
+      </div>
+      {% endif %}
+
+      <!-- Tokenize Popup -->
+      <div
+        id="tokenizePopup"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center"
+      >
+        <div class="bg-white p-6 rounded-lg shadow-xl w-96">
+          <h2 class="text-2xl font-bold mb-4 text-gray-800">Verify Data</h2>
+          <form action="/tokenize" method="POST">
+            <div class="mb-4">
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="ghana_card_number"
+                >Ghana Card Number</label
+              >
+              <input
+                type="text"
+                id="ghana_card_number"
+                name="ghana_card_number"
+                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+            <div class="mb-4">
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="phone_number"
+                >Phone Number</label
+              >
+              <input
+                type="text"
+                id="phone_number"
+                name="phone_number"
+                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-400"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
+            >
+              Verify
+            </button>
+          </form>
+          <button
+            onclick="closeTokenizePopup()"
+            class="mt-4 w-full bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Detokenize Popup -->
+      <div
+        id="detokenizePopup"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center"
+      >
+        <div class="bg-white p-6 rounded-lg shadow-xl w-96">
+          <h2 class="text-2xl font-bold mb-4 text-gray-800">Detokenize Data</h2>
+          <form action="/detokenize" method="POST">
+            <div class="mb-4">
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="token"
+                >Token</label
+              >
+              <input
+                type="text"
+                id="token"
+                name="token"
+                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600"
+            >
+              Detokenize
+            </button>
+          </form>
+          <button
+            onclick="closeDetokenizePopup()"
+            class="mt-4 w-full bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Display Tokenize Response -->
+      {% if tokenize_response %}
+      <div
+        class="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow"
+      >
+        <h3 class="text-lg font-bold mb-2">ID Verification Successful</h3>
+        <div>
+          <p>
+            <strong>First Name:</strong>
+            <span class="selectable">{{ tokenize_response.first_name }}</span>
+          </p>
+          <p>
+            <strong>Middle Name:</strong>
+            <span class="selectable">{{ tokenize_response.middle_name }}</span>
+          </p>
+          <p>
+            <strong>Last Name:</strong>
+            <span class="selectable">{{ tokenize_response.last_name }}</span>
+          </p>
+          <p>
+            <strong>Ghana Card Number:</strong>
+            <span class="selectable"
+              >{{ tokenize_response.ghana_card_number }}</span
+            >
+          </p>
+          <p>
+            <strong>Date of Birth:</strong>
+            <span class="selectable"
+              >{{ tokenize_response.date_of_birth }}</span
+            >
+          </p>
+          <p>
+            <strong>Place of Birth:</strong>
+            <span class="selectable"
+              >{{ tokenize_response.place_of_birth }}</span
+            >
+          </p>
+          <p>
+            <strong>Nationality:</strong>
+            <span class="selectable">{{ tokenize_response.nationality }}</span>
+          </p>
+          <p>
+            <strong>Ethnicity:</strong>
+            <span class="selectable">{{ tokenize_response.ethnicity }}</span>
+          </p>
+          <p>
+            <strong>Marital Status:</strong>
+            <span class="selectable"
+              >{{ tokenize_response.marital_status }}</span
+            >
+          </p>
+          <p>
+            <strong>Mother's Name:</strong>
+            <span class="selectable">{{ tokenize_response.mother_name }}</span>
+          </p>
+          <p>
+            <strong>Father's Name:</strong>
+            <span class="selectable">{{ tokenize_response.father_name }}</span>
+          </p>
+          <p>
+            <strong>Email:</strong>
+            <span class="selectable">{{ tokenize_response.email }}</span>
+          </p>
+          <p>
+            <strong>Gender:</strong>
+            <span class="selectable">{{ tokenize_response.gender }}</span>
+          </p>
+          <p>
+            <strong>Address:</strong>
+            <span class="selectable">{{ tokenize_response.address }}</span>
+          </p>
+          <p>
+            <strong>Phone Number:</strong>
+            <span class="selectable">{{ tokenize_response.phone_number }}</span>
+          </p>
+        </div>
+      </div>
+      <a
+        href="/dashboard"
+        class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+      >
+        Return to dashboard
+      </a>
+      {% endif %}
+
+      <!-- Display Detokenize Response -->
+      {% if detokenize_response %}
+      <div
+        class="mt-6 p-4 bg-purple-100 border border-purple-400 text-purple-700 rounded shadow"
+      >
+        <h3 class="text-xl font-bold mb-2 text-blue-900">Detokenized Data:</h3>
+        <div>
+          <p>
+            <strong>Ghana Card Number:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.ghana_card_number }}</span
+            >
+          </p>
+          <p>
+            <strong>First Name:</strong>
+            <span class="selectable">{{ detokenize_response.first_name }}</span>
+          </p>
+          <p>
+            <strong>Middle Name:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.middle_name }}</span
+            >
+          </p>
+          <p>
+            <strong>Last Name:</strong>
+            <span class="selectable">{{ detokenize_response.last_name }}</span>
+          </p>
+          <p>
+            <strong>Date of Birth:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.date_of_birth }}</span
+            >
+          </p>
+          <p>
+            <strong>Place of Birth:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.place_of_birth }}</span
+            >
+          </p>
+          <p>
+            <strong>Nationality:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.nationality }}</span
+            >
+          </p>
+          <p>
+            <strong>Ethnicity:</strong>
+            <span class="selectable">{{ detokenize_response.ethnicity }}</span>
+          </p>
+          <p>
+            <strong>Marital Status:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.marital_status }}</span
+            >
+          </p>
+          <p>
+            <strong>Mother's Name:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.mother_name }}</span
+            >
+          </p>
+          <p>
+            <strong>Father's Name:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.father_name }}</span
+            >
+          </p>
+          <p>
+            <strong>Email:</strong>
+            <span class="selectable">{{ detokenize_response.email }}</span>
+          </p>
+          <p>
+            <strong>Gender:</strong>
+            <span class="selectable">{{ detokenize_response.gender }}</span>
+          </p>
+          <p>
+            <strong>Address:</strong>
+            <span class="selectable">{{ detokenize_response.address }}</span>
+          </p>
+          <p>
+            <strong>Phone Number:</strong>
+            <span class="selectable"
+              >{{ detokenize_response.phone_number }}</span
+            >
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Display Tokenized Entries Table -->
+      {% if tokenized_entries %}
+      <div class="mt-6">
+        <h3 class="text-lg font-bold mb-2">Tokenized Entries</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white border border-gray-200">
+            <thead>
+              <tr>
+                <th class="py-2 px-4 border-b">ID</th>
+                <th class="py-2 px-4 border-b">Tokens</th>
+                <th class="py-2 px-4 border-b">Created At</th>
+                <th class="py-2 px-4 border-b">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entry in tokenized_entries %}
+              <tr class="hover:bg-gray-100">
+                <td class="py-2 px-4 border-b">{{ entry.id }}</td>
+                <td class="py-2 px-4 border-b">
+                  <div>
+                    <p>
+                      <strong>Ghana Card Number:</strong> {{
+                      entry.tokens.ghana_card_number }}
+                    </p>
+                    <p>
+                      <strong>First Name:</strong> {{ entry.tokens.first_name }}
+                    </p>
+                    <p>
+                      <strong>Middle Name:</strong> {{ entry.tokens.middle_name
+                      }}
+                    </p>
+                    <p>
+                      <strong>Last Name:</strong> {{ entry.tokens.last_name }}
+                    </p>
+                    <p>
+                      <strong>Date of Birth:</strong> {{
+                      entry.tokens.date_of_birth }}
+                    </p>
+                    <p>
+                      <strong>Place of Birth:</strong> {{
+                      entry.tokens.place_of_birth }}
+                    </p>
+                    <p>
+                      <strong>Nationality:</strong> {{ entry.tokens.nationality
+                      }}
+                    </p>
+                    <p>
+                      <strong>Ethnicity:</strong> {{ entry.tokens.ethnicity }}
+                    </p>
+                    <p>
+                      <strong>Marital Status:</strong> {{
+                      entry.tokens.marital_status }}
+                    </p>
+                    <p>
+                      <strong>Mother's Name:</strong> {{
+                      entry.tokens.mother_name }}
+                    </p>
+                    <p>
+                      <strong>Father's Name:</strong> {{
+                      entry.tokens.father_name }}
+                    </p>
+                    <p><strong>Email:</strong> {{ entry.tokens.email }}</p>
+                    <p><strong>Gender:</strong> {{ entry.tokens.gender }}</p>
+                    <p><strong>Address:</strong> {{ entry.tokens.address }}</p>
+                    <p>
+                      <strong>Phone Number:</strong> {{
+                      entry.tokens.phone_number }}
+                    </p>
+                  </div>
+                </td>
+                <td class="py-2 px-4 border-b">{{ entry.created_at }}</td>
+                <td class="py-2 px-4 border-b">
+                  <button
+                    class="primary-button"
+                    onclick="detokenizeEntry('{{ entry.id }}')"
+                  >
+                    Detokenize
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+
+      <div
+        id="detokenizeModal"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center"
+      >
+        <div class="bg-white p-6 rounded-lg shadow-xl w-96">
+          <h2 class="text-2xl font-bold mb-4 text-gray-800">
+            Detokenize Response
+          </h2>
+          <div id="detokenizeResponse" class="text-gray-700"></div>
+          <button
+            onclick="closeDetokenizeModal()"
+            class="mt-4 w-full bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      <!-- Loader Element -->
+      <div
+        id="loader"
+        class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center"
+      >
+        <div class="loader"></div>
+      </div>
+
+      <script>
+        function openTokenizePopup() {
+          document.getElementById("tokenizePopup").classList.remove("hidden");
+        }
+        function closeTokenizePopup() {
+          document.getElementById("tokenizePopup").classList.add("hidden");
+        }
+        function openDetokenizePopup() {
+          document.getElementById("detokenizePopup").classList.remove("hidden");
+        }
+        function closeDetokenizePopup() {
+          document.getElementById("detokenizePopup").classList.add("hidden");
+        }
+
+        // Disable right-click context menu
+        document.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+        });
+
+        function detokenizeEntry(entryId) {
+          document.getElementById("loader").classList.remove("hidden"); // Show loader
+          fetch(`/detokenize_entry/${entryId}`)
+            .then((response) => response.json())
+            .then((data) => {
+              document.getElementById("loader").classList.add("hidden"); // Hide loader
+              if (data.error) {
+                document.getElementById("detokenizeResponse").innerText =
+                  data.error;
+              } else {
+                const responseHtml = `
+                  <p><strong>Ghana Card Number:</strong> ${data.ghana_card_number}</p>
+                  <p><strong>First Name:</strong> ${data.first_name}</p>
+                  <p><strong>Middle Name:</strong> ${data.middle_name}</p>
+                  <p><strong>Last Name:</strong> ${data.last_name}</p>
+                  <p><strong>Date of Birth:</strong> ${data.date_of_birth}</p>
+                  <p><strong>Place of Birth:</strong> ${data.place_of_birth}</p>
+                  <p><strong>Nationality:</strong> ${data.nationality}</p>
+                  <p><strong>Ethnicity:</strong> ${data.ethnicity}</p>
+                  <p><strong>Marital Status:</strong> ${data.marital_status}</p>
+                  <p><strong>Mother's Name:</strong> ${data.mother_name}</p>
+                  <p><strong>Father's Name:</strong> ${data.father_name}</p>
+                  <p><strong>Email:</strong> ${data.email}</p>
+                  <p><strong>Gender:</strong> ${data.gender}</p>
+                  <p><strong>Address:</strong> ${data.address}</p>
+                  <p><strong>Phone Number:</strong> ${data.phone_number}</p>
+                `;
+                document.getElementById("detokenizeResponse").innerHTML =
+                  responseHtml;
+              }
+              document
+                .getElementById("detokenizeModal")
+                .classList.remove("hidden");
+            })
+            .catch((error) => {
+              document.getElementById("loader").classList.add("hidden"); // Hide loader
+              console.error("Error:", error);
+            });
+        }
+
+        function closeDetokenizeModal() {
+          document.getElementById("detokenizeModal").classList.add("hidden");
+        }
+      </script>
+    </div>
+  </body>
+</html>
