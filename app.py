@@ -150,6 +150,7 @@ def tokenize():
 
         return render_template(
             "dashboard.html",
+            client_id=client_id,
             tokenize_response=tokens,
             success="Tokenization successful",
         )
