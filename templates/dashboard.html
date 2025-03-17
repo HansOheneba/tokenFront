@@ -35,7 +35,6 @@
       }
       /* Additional protection against copying */
       .copy-protected {
-        pointer-events: none; /* Prevents click events */
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -49,18 +48,104 @@
         -moz-user-drag: none;
         -o-user-drag: none;
       }
+
+      /* Blur protection for sensitive data */
+      .blur-protect {
+        filter: blur(5px);
+        transition: filter 0.3s ease;
+      }
+
+      /* Split text characters to break OCR in screenshots */
+      .split-text {
+        letter-spacing: 3px;
+        word-spacing: 8px;
+        font-family: monospace;
+      }
+
+      /* Hide data by default */
+      .hidden-data {
+        color: transparent;
+        text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Clickable items inside protected content */
+      .data-field {
+        cursor: pointer;
+        pointer-events: auto !important;
+        position: relative;
+        display: inline-block;
+      }
+
+      /* Screenshot protection overlay */
+      .screenshot-overlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        text-align: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+
+      .screenshot-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* Extra protection when screenshot attempted */
+      .screenshot-protection {
+        filter: blur(20px) !important;
+        color: transparent !important;
+      }
+
+      /* Container to detect focus */
+      .focus-container {
+        position: relative;
+      }
+
+      /* When container is focused, reveal the content */
+      .focus-container:focus-within .blur-protect {
+        filter: blur(0);
+        color: inherit;
+        text-shadow: none;
+      }
+
+      .focus-container:focus-within .hidden-data {
+        color: inherit;
+        text-shadow: none;
+      }
+
+      /* Visual indicator that the container needs focus */
+      .focus-container:not(:focus-within)::before {
+        content: "";
+        position: absolute;
+        top: -30px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 14px;
+        color: #4a5568;
+        opacity: 0.8;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body
-    class="bg-gray-100 flex items-center justify-center min-h-screen  select-none"
+    class="bg-gray-100 flex items-center justify-center min-h-screen select-none"
   >
-   
     <div class="bg-white shadow-lg rounded-lg p-8 w-full max-w-4xl relative">
-       <div
-      class="absolute top-5 left-5 bg-white bg-opacity-90 p-2 px-4 rounded-lg shadow-md text-sm text-gray-600"
-    >
-      Logged in as: <strong>{{ client_id }}</strong>
-    </div>
+      <div
+        class="absolute top-5 left-5 bg-white bg-opacity-90 p-2 px-4 rounded-lg shadow-md text-sm text-gray-600"
+      >
+        Logged in as: <strong>{{ client_id }}</strong>
+      </div>
       <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">
         Client Dashboard
       </h1>
@@ -281,93 +366,103 @@
       <!-- Display Detokenize Response -->
       {% if detokenize_response %}
       <div
-        class="mt-6 p-4 bg-purple-100 border border-purple-400 text-purple-700 rounded shadow copy-protected"
+        class="mt-6 p-4 bg-purple-100 border border-purple-400 text-purple-700 rounded shadow"
       >
         <h3 class="text-xl font-bold mb-2 text-blue-900">Detokenized Data:</h3>
-        <div class="copy-protected">
+        <p class="mb-2 text-sm text-gray-700 italic">
+          Click anywhere in this section to view data. Data will hide when you
+          click outside.
+        </p>
+
+        <!-- Add tabindex to make the container focusable -->
+        <div class="copy-protected focus-container" tabindex="0">
           <p>
             <strong>Ghana Card Number:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.ghana_card_number }}</span
             >
           </p>
           <p>
             <strong>First Name:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.first_name }}</span
             >
           </p>
           <p>
             <strong>Middle Name:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.middle_name }}</span
             >
           </p>
           <p>
             <strong>Last Name:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.last_name }}</span
             >
           </p>
           <p>
             <strong>Date of Birth:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.date_of_birth }}</span
             >
           </p>
           <p>
             <strong>Place of Birth:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.place_of_birth }}</span
             >
           </p>
           <p>
             <strong>Nationality:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.nationality }}</span
             >
           </p>
           <p>
             <strong>Ethnicity:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.ethnicity }}</span
             >
           </p>
           <p>
             <strong>Marital Status:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.marital_status }}</span
             >
           </p>
           <p>
             <strong>Mother's Name:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.mother_name }}</span
             >
           </p>
           <p>
             <strong>Father's Name:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.father_name }}</span
             >
           </p>
           <p>
             <strong>Email:</strong>
-            <span class="copy-protected">{{ detokenize_response.email }}</span>
+            <span class="data-field blur-protect hidden-data"
+              >{{ detokenize_response.email }}</span
+            >
           </p>
           <p>
             <strong>Gender:</strong>
-            <span class="copy-protected">{{ detokenize_response.gender }}</span>
+            <span class="data-field blur-protect hidden-data"
+              >{{ detokenize_response.gender }}</span
+            >
           </p>
           <p>
             <strong>Address:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.address }}</span
             >
           </p>
           <p>
             <strong>Phone Number:</strong>
-            <span class="copy-protected"
+            <span class="data-field blur-protect hidden-data"
               >{{ detokenize_response.phone_number }}</span
             >
           </p>
@@ -483,6 +578,30 @@
         </div>
       </div>
 
+      <!-- Add screenshot protection overlay -->
+      <div id="screenshotOverlay" class="screenshot-overlay">
+        <div class="p-8">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-24 w-24 mx-auto mb-4 text-red-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          <p class="text-xl font-bold">Screenshot Detected</p>
+          <p class="mt-2">
+            For security reasons, sensitive data has been temporarily hidden.
+          </p>
+        </div>
+      </div>
+
       <!-- Loader Element -->
       <div
         id="loader"
@@ -521,24 +640,35 @@
                   data.error;
               } else {
                 const responseHtml = `
-                  <p><strong>Ghana Card Number:</strong> <span class="copy-protected">${data.ghana_card_number}</span></p>
-                  <p><strong>First Name:</strong> <span class="copy-protected">${data.first_name}</span></p>
-                  <p><strong>Middle Name:</strong> <span class="copy-protected">${data.middle_name}</span></p>
-                  <p><strong>Last Name:</strong> <span class="copy-protected">${data.last_name}</span></p>
-                  <p><strong>Date of Birth:</strong> <span class="copy-protected">${data.date_of_birth}</span></p>
-                  <p><strong>Place of Birth:</strong> <span class="copy-protected">${data.place_of_birth}</span></p>
-                  <p><strong>Nationality:</strong> <span class="copy-protected">${data.nationality}</span></p>
-                  <p><strong>Ethnicity:</strong> <span class="copy-protected">${data.ethnicity}</span></p>
-                  <p><strong>Marital Status:</strong> <span class="copy-protected">${data.marital_status}</span></p>
-                  <p><strong>Mother's Name:</strong> <span class="copy-protected">${data.mother_name}</span></p>
-                  <p><strong>Father's Name:</strong> <span class="copy-protected">${data.father_name}</span></p>
-                  <p><strong>Email:</strong> <span class="copy-protected">${data.email}</span></p>
-                  <p><strong>Gender:</strong> <span class="copy-protected">${data.gender}</span></p>
-                  <p><strong>Address:</strong> <span class="copy-protected">${data.address}</span></p>
-                  <p><strong>Phone Number:</strong> <span class="copy-protected">${data.phone_number}</span></p>
+              
+                  <div class="copy-protected focus-container" tabindex="0">
+                    <p><strong>Ghana Card Number:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.ghana_card_number}</span></p>
+                    <p><strong>First Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.first_name}</span></p>
+                    <p><strong>Middle Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.middle_name}</span></p>
+                    <p><strong>Last Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.last_name}</span></p>
+                    <p><strong>Date of Birth:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.date_of_birth}</span></p>
+                    <p><strong>Place of Birth:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.place_of_birth}</span></p>
+                    <p><strong>Nationality:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.nationality}</span></p>
+                    <p><strong>Ethnicity:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.ethnicity}</span></p>
+                    <p><strong>Marital Status:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.marital_status}</span></p>
+                    <p><strong>Mother's Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.mother_name}</span></p>
+                    <p><strong>Father's Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.father_name}</span></p>
+                    <p><strong>Email:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.email}</span></p>
+                    <p><strong>Gender:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.gender}</span></p>
+                    <p><strong>Address:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.address}</span></p>
+                    <p><strong>Phone Number:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.phone_number}</span></p>
+                  </div>
                 `;
                 document.getElementById("detokenizeResponse").innerHTML =
                   responseHtml;
+
+                // Auto-focus the container to show data immediately
+                setTimeout(() => {
+                  const focusContainer = document.querySelector(
+                    "#detokenizeResponse .focus-container"
+                  );
+                  if (focusContainer) focusContainer.focus();
+                }, 100);
               }
               document
                 .getElementById("detokenizeModal")
@@ -566,6 +696,148 @@
           // Check if we're inside a copy-protected element
           if (e.target.closest(".copy-protected")) {
             e.preventDefault();
+          }
+        });
+
+        // Function to temporarily reveal blurred/hidden content
+        function temporaryReveal(element) {
+          console.log("Element clicked:", element); // Debug log
+
+          // Remove blur and show content
+          element.classList.remove("blur-protect");
+          element.classList.remove("hidden-data");
+
+          // Set a timeout to blur and hide it again after 2 seconds
+          setTimeout(() => {
+            element.classList.add("blur-protect");
+            element.classList.add("hidden-data");
+          }, 2000);
+        }
+
+        // Detect when tab loses focus (potential screenshot attempt)
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState === "hidden") {
+            // Hide all sensitive data when tab loses focus
+            document.querySelectorAll(".blur-protect").forEach((el) => {
+              el.classList.add("hidden-data");
+            });
+          }
+        });
+
+        // Additional protection against dev tools opening
+        window.addEventListener("resize", function () {
+          // Hide data when window is resized (possible dev tools opening)
+          document.querySelectorAll(".blur-protect").forEach((el) => {
+            el.classList.add("hidden-data");
+          });
+        });
+
+        // Key state tracking
+        const keys = {
+          ctrl: false,
+          alt: false,
+          shift: false,
+          meta: false, // Windows/Command key
+          prtscr: false,
+        };
+
+        // Screenshot detection
+        document.addEventListener("keydown", function (e) {
+          // Update key states
+          keys.ctrl = e.ctrlKey;
+          keys.alt = e.altKey;
+          keys.shift = e.shiftKey;
+          keys.meta = e.metaKey;
+
+          // Print Screen key detection (not always reliable)
+          if (e.key === "PrintScreen") {
+            keys.prtscr = true;
+            e.preventDefault(); // Prevent PrintScreen (may not work in all browsers)
+            screenshotDetected();
+          }
+
+          // Common screenshot & dev tools shortcuts
+          const isScreenshotCombo =
+            keys.prtscr || // PrtScr alone
+            keys.meta || // PrtScr alone
+            (keys.ctrl && e.key === "PrintScreen") || // Ctrl+PrtScr
+            (keys.alt && e.key === "PrintScreen") || // Alt+PrtScr
+            (keys.meta && e.key === "PrintScreen") || // Win+PrtScr
+            (keys.meta && keys.shift && e.key.toLowerCase() === "s") || // Win+Shift+S
+            (keys.ctrl && keys.shift && e.key.toLowerCase() === "s") || // Ctrl+Shift+S
+            e.key === "F12" || // Developer Tools
+            (keys.ctrl && e.key.toLowerCase() === "p"); // Ctrl+P (Print)
+
+          if (isScreenshotCombo) {
+            e.preventDefault(); // Block default behavior
+            screenshotDetected();
+          }
+        });
+
+        document.addEventListener("keyup", function (e) {
+          // Reset key states
+          keys.ctrl = e.ctrlKey;
+          keys.alt = e.altKey;
+          keys.shift = e.shiftKey;
+          keys.meta = e.metaKey;
+
+          if (e.key === "PrintScreen") keys.prtscr = false;
+        });
+
+        function screenshotDetected() {
+          console.log("Screenshot attempt detected!");
+
+          // Force blur on all sensitive data
+          document.querySelectorAll(".focus-container").forEach((container) => {
+            container.blur(); // Remove focus to hide data
+          });
+
+          // Apply extra protection
+          document.querySelectorAll(".data-field").forEach((el) => {
+            el.classList.add("screenshot-protection");
+          });
+
+          // Show overlay
+          const overlay = document.getElementById("screenshotOverlay");
+          if (overlay) {
+            overlay.classList.add("active");
+          }
+
+          // Reset after delay
+          setTimeout(() => {
+            overlay.classList.remove("active");
+            document.querySelectorAll(".data-field").forEach((el) => {
+              el.classList.remove("screenshot-protection");
+            });
+          }, 3000);
+        }
+
+        // Initialize focus containers when the page loads
+        document.addEventListener("DOMContentLoaded", function () {
+          // Set initial focus when sensitive data containers are present
+          const focusContainers = document.querySelectorAll(".focus-container");
+          if (focusContainers.length > 0) {
+            focusContainers[0].focus();
+          }
+        });
+
+        // Additional monitoring for lost focus
+        document.addEventListener("click", function (e) {
+          const focusContainers = document.querySelectorAll(".focus-container");
+
+          // Check if click was outside any focus container
+          let clickedOutside = true;
+          focusContainers.forEach((container) => {
+            if (container.contains(e.target)) {
+              clickedOutside = false;
+            }
+          });
+
+          // If clicked outside, blur all containers
+          if (clickedOutside) {
+            focusContainers.forEach((container) => {
+              container.blur();
+            });
           }
         });
       </script>
