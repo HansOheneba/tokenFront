@@ -629,6 +629,91 @@
           e.preventDefault();
         });
 
+        // Key state tracking
+        const keys = {
+          ctrl: false,
+          alt: false,
+          shift: false,
+          meta: false, // Windows/Command key
+          prtscr: false,
+        };
+
+        // Debug function to help diagnose keypress issues
+        function debugKeyPress(event, action) {
+          console.log(
+            `${action} - Key: ${event.key}, Code: ${event.code}, KeyCode: ${event.keyCode}`
+          );
+          console.log(
+            `Modifiers - Ctrl: ${event.ctrlKey}, Alt: ${event.altKey}, Shift: ${event.shiftKey}, Meta: ${event.metaKey}`
+          );
+        }
+
+        // Screenshot detection
+        document.addEventListener("keydown", function (e) {
+          debugKeyPress(e, "KeyDown");
+
+          // Update key states
+          keys.ctrl = e.ctrlKey;
+          keys.alt = e.altKey;
+          keys.shift = e.shiftKey;
+          keys.meta = e.metaKey;
+
+          // Print Screen key detection (not always reliable)
+          if (e.key === "PrintScreen" || e.code === "PrintScreen") {
+            keys.prtscr = true;
+            e.preventDefault(); // Prevent PrintScreen (may not work in all browsers)
+            screenshotDetected();
+            return;
+          }
+
+          // Detect individual keys as requested
+          const sensitiveKeys = [
+            e.key === "Control" || e.ctrlKey, // Control key
+            e.key === "Shift" || e.shiftKey, // Shift key
+            e.key === "Alt" || e.altKey, // Alt key
+            e.key === "Meta" || e.metaKey, // Windows/Command key
+            e.key === "s" || e.key === "S", // S key
+            e.key === "PrintScreen" || keys.prtscr, // PrintScreen key
+          ];
+
+          // If any sensitive key is pressed
+          if (sensitiveKeys.some((key) => key)) {
+            console.log("Security key detected:", e.key);
+            e.preventDefault();
+            screenshotDetected();
+            return;
+          }
+
+          // Common screenshot & dev tools shortcuts
+          const isScreenshotCombo =
+            (keys.ctrl && e.key === "PrintScreen") || // Ctrl+PrtScr
+            (keys.alt && e.key === "PrintScreen") || // Alt+PrtScr
+            (keys.meta && e.key === "PrintScreen") || // Win+PrtScr
+            (keys.meta && keys.shift && e.key.toLowerCase() === "s") || // Win+Shift+S
+            (keys.ctrl && keys.shift && e.key.toLowerCase() === "s") || // Ctrl+Shift+S
+            e.key === "F12" || // Developer Tools
+            (keys.ctrl && e.key.toLowerCase() === "p"); // Ctrl+P (Print)
+
+          if (isScreenshotCombo) {
+            console.log("Screenshot combination detected:", e.key);
+            e.preventDefault(); // Block default behavior
+            screenshotDetected();
+          }
+        });
+
+        document.addEventListener("keyup", function (e) {
+          debugKeyPress(e, "KeyUp");
+
+          // Reset key states
+          keys.ctrl = e.ctrlKey;
+          keys.alt = e.altKey;
+          keys.shift = e.shiftKey;
+          keys.meta = e.metaKey;
+
+          if (e.key === "PrintScreen" || e.code === "PrintScreen")
+            keys.prtscr = false;
+        });
+
         function detokenizeEntry(entryId) {
           document.getElementById("loader").classList.remove("hidden"); // Show loader
           fetch(`/detokenize_entry/${entryId}`)
@@ -730,58 +815,6 @@
           document.querySelectorAll(".blur-protect").forEach((el) => {
             el.classList.add("hidden-data");
           });
-        });
-
-        // Key state tracking
-        const keys = {
-          ctrl: false,
-          alt: false,
-          shift: false,
-          meta: false, // Windows/Command key
-          prtscr: false,
-        };
-
-        // Screenshot detection
-        document.addEventListener("keydown", function (e) {
-          // Update key states
-          keys.ctrl = e.ctrlKey;
-          keys.alt = e.altKey;
-          keys.shift = e.shiftKey;
-          keys.meta = e.metaKey;
-
-          // Print Screen key detection (not always reliable)
-          if (e.key === "PrintScreen") {
-            keys.prtscr = true;
-            e.preventDefault(); // Prevent PrintScreen (may not work in all browsers)
-            screenshotDetected();
-          }
-
-          // Common screenshot & dev tools shortcuts
-          const isScreenshotCombo =
-            keys.prtscr || // PrtScr alone
-            keys.meta || // PrtScr alone
-            (keys.ctrl && e.key === "PrintScreen") || // Ctrl+PrtScr
-            (keys.alt && e.key === "PrintScreen") || // Alt+PrtScr
-            (keys.meta && e.key === "PrintScreen") || // Win+PrtScr
-            (keys.meta && keys.shift && e.key.toLowerCase() === "s") || // Win+Shift+S
-            (keys.ctrl && keys.shift && e.key.toLowerCase() === "s") || // Ctrl+Shift+S
-            e.key === "F12" || // Developer Tools
-            (keys.ctrl && e.key.toLowerCase() === "p"); // Ctrl+P (Print)
-
-          if (isScreenshotCombo) {
-            e.preventDefault(); // Block default behavior
-            screenshotDetected();
-          }
-        });
-
-        document.addEventListener("keyup", function (e) {
-          // Reset key states
-          keys.ctrl = e.ctrlKey;
-          keys.alt = e.altKey;
-          keys.shift = e.shiftKey;
-          keys.meta = e.metaKey;
-
-          if (e.key === "PrintScreen") keys.prtscr = false;
         });
 
         function screenshotDetected() {
