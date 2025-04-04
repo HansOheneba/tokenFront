@@ -676,8 +676,11 @@
             e.key === "PrintScreen" || keys.prtscr, // PrintScreen key
           ];
 
-          // If any sensitive key is pressed
-          if (sensitiveKeys.some((key) => key)) {
+          // If any sensitive key is pressed and the focus is on sensitive data
+          if (
+            sensitiveKeys.some((key) => key) &&
+            document.activeElement.closest(".focus-container")
+          ) {
             console.log("Security key detected:", e.key);
             e.preventDefault();
             screenshotDetected();
@@ -694,7 +697,10 @@
             e.key === "F12" || // Developer Tools
             (keys.ctrl && e.key.toLowerCase() === "p"); // Ctrl+P (Print)
 
-          if (isScreenshotCombo) {
+          if (
+            isScreenshotCombo &&
+            document.activeElement.closest(".focus-container")
+          ) {
             console.log("Screenshot combination detected:", e.key);
             e.preventDefault(); // Block default behavior
             screenshotDetected();
