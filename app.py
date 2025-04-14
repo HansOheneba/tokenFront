@@ -16,8 +16,6 @@ import mysql.connector
 import json
 from dotenv import load_dotenv
 import logging
-from flask_caching import Cache
-from mysql.connector import pooling
 
 load_dotenv()
 
@@ -25,32 +23,27 @@ app = Flask(__name__)
 app.secret_key = "frontend_secret_key"
 
 # API URL
-API_URL = "https://tokens-rho.vercel.app/"
+# API_URL = "https://tokens-rho.vercel.app/"
+API_URL = "http://localhost:5002"
 
 TOKEN_CSV_PATH = (
     "C:/Users/HansOpoku/OneDrive - Margins Group/Desktop/tokenize/secureEnv/token.csv"
 )
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging with INFO level to reduce debug messages
+logging.basicConfig(level=logging.INFO)
 
-# Configure caching
-cache = Cache(app, config={"CACHE_TYPE": "simple"})
-
-# Configure database connection pooling
+# Database configuration
 dbconfig = {
     "host": os.getenv("MYSQL_HOST"),
     "user": os.getenv("MYSQL_USER"),
     "password": os.getenv("MYSQL_PASSWORD"),
     "database": os.getenv("MYSQL_DB"),
 }
-connection_pool = pooling.MySQLConnectionPool(
-    pool_name="mypool", pool_size=5, **dbconfig
-)
 
 
 def get_db_connection():
-    return connection_pool.get_connection()
+    return mysql.connector.connect(**dbconfig)
 
 
 @app.route("/")
@@ -82,6 +75,10 @@ def dashboard():
     if "client_id" not in session:
         return redirect(url_for("index"))
 
+    # Clear any stored tokens to ensure we fetch fresh data
+    if "tokens" in session:
+        session.pop("tokens")
+
     client_id = session["client_id"]
     tokenized_entries = fetch_tokenized_entries(client_id)
 
@@ -90,23 +87,33 @@ def dashboard():
     )
 
 
-@cache.memoize(timeout=300)
 def fetch_tokenized_entries(client_id):
     table_name = f"{client_id}_tokens"
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
-    cursor.execute(f"SELECT id, tokens, created_at FROM {table_name}")
-    entries = cursor.fetchall()
-    cursor.close()
-    connection.close()
-    return [
-        {
-            "id": entry["id"],
-            "tokens": json.loads(entry["tokens"]),
-            "created_at": entry["created_at"],
-        }
-        for entry in entries
-    ]
+    
+    try:
+        cursor.execute(f"SELECT id, tokens, created_at FROM {table_name}")
+        entries = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        
+        # Process entries with dynamic fields
+        processed_entries = []
+        for entry in entries:
+            token_data = json.loads(entry["tokens"])
+            # Now token_data is a dictionary with dynamic fields
+            processed_entries.append({
+                "id": entry["id"],
+                "tokens": token_data,  # This will contain all the dynamic fields
+                "created_at": entry["created_at"],
+            })
+        return processed_entries
+    except mysql.connector.Error as err:
+        logging.error(f"Error fetching tokens: {err}")
+        cursor.close()
+        connection.close()
+        return []
 
 
 @app.route("/logout", methods=["POST"])
@@ -145,20 +152,29 @@ def tokenize():
         table_name = f"{client_id}_tokens"
         save_tokens_to_db(table_name, tokens)
 
-        # Clear the cache for the client's tokenized entries
-        cache.delete_memoized(fetch_tokenized_entries, client_id)
+        # Fetch fresh token data
+        tokenized_entries = fetch_tokenized_entries(client_id)
 
         return render_template(
             "dashboard.html",
             client_id=client_id,
             tokenize_response=tokens,
+            tokenized_entries=tokenized_entries,
             success="Tokenization successful",
         )
     else:
+        client_id = session["client_id"]
+        # Fetch fresh token data
+        tokenized_entries = fetch_tokenized_entries(client_id)
         error_message = response.json().get(
             "error", "An error occurred during tokenization"
         )
-        return render_template("dashboard.html", error=error_message)
+        return render_template(
+            "dashboard.html",
+            client_id=client_id,
+            tokenized_entries=tokenized_entries,
+            error=error_message,
+        )
 
 
 def save_tokens_to_db(table_name, tokens):
@@ -202,9 +218,15 @@ def detokenize():
         cookies=api_cookies,
     )
 
+    client_id = session["client_id"]
+    # Fetch fresh token data
+    tokenized_entries = fetch_tokenized_entries(client_id)
+
     if response.status_code == 200:
         return render_template(
             "dashboard.html",
+            client_id=client_id,
+            tokenized_entries=tokenized_entries,
             detokenize_response=response.json(),
             success="Detokenization successful",
         )
@@ -212,7 +234,12 @@ def detokenize():
         error_message = response.json().get(
             "error", "An error occurred during detokenization"
         )
-        return render_template("dashboard.html", error=error_message)
+        return render_template(
+            "dashboard.html",
+            client_id=client_id,
+            tokenized_entries=tokenized_entries,
+            error=error_message,
+        )
 
 
 @app.route("/detokenize_entry/<int:entry_id>")

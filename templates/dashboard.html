@@ -278,194 +278,38 @@
 
       <!-- Display Tokenize Response -->
       {% if tokenize_response %}
-      <div
-        class="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow"
-      >
+      <div class="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow">
         <h3 class="text-lg font-bold mb-2">ID Verification Successful</h3>
         <div>
+          {% for field, token in tokenize_response.items() %}
           <p>
-            <strong>First Name:</strong>
-            <span class="select-text">{{ tokenize_response.first_name }}</span>
+            <strong>{{ field|replace('_', ' ')|title }}:</strong>
+            <span class="select-text">{{ token }}</span>
           </p>
-          <p>
-            <strong>Middle Name:</strong>
-            <span class="select-text">{{ tokenize_response.middle_name }}</span>
-          </p>
-          <p>
-            <strong>Last Name:</strong>
-            <span class="select-text">{{ tokenize_response.last_name }}</span>
-          </p>
-          <p>
-            <strong>Ghana Card Number:</strong>
-            <span class="select-text"
-              >{{ tokenize_response.ghana_card_number }}</span
-            >
-          </p>
-          <p>
-            <strong>Date of Birth:</strong>
-            <span class="select-text"
-              >{{ tokenize_response.date_of_birth }}</span
-            >
-          </p>
-          <p>
-            <strong>Place of Birth:</strong>
-            <span class="select-text"
-              >{{ tokenize_response.place_of_birth }}</span
-            >
-          </p>
-          <p>
-            <strong>Nationality:</strong>
-            <span class="select-text">{{ tokenize_response.nationality }}</span>
-          </p>
-          <p>
-            <strong>Ethnicity:</strong>
-            <span class="select-text">{{ tokenize_response.ethnicity }}</span>
-          </p>
-          <p>
-            <strong>Marital Status:</strong>
-            <span class="select-text"
-              >{{ tokenize_response.marital_status }}</span
-            >
-          </p>
-          <p>
-            <strong>Mother's Name:</strong>
-            <span class="select-text">{{ tokenize_response.mother_name }}</span>
-          </p>
-          <p>
-            <strong>Father's Name:</strong>
-            <span class="select-text">{{ tokenize_response.father_name }}</span>
-          </p>
-          <p>
-            <strong>Email:</strong>
-            <span class="select-text">{{ tokenize_response.email }}</span>
-          </p>
-          <p>
-            <strong>Gender:</strong>
-            <span class="select-text">{{ tokenize_response.gender }}</span>
-          </p>
-          <p>
-            <strong>Address:</strong>
-            <span class="select-text">{{ tokenize_response.address }}</span>
-          </p>
-          <p>
-            <strong>Phone Number:</strong>
-            <span class="select-text"
-              >{{ tokenize_response.phone_number }}</span
-            >
-          </p>
+          {% endfor %}
         </div>
       </div>
-      <a
-        href="/dashboard"
-        class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-      >
+      <a href="/dashboard" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
         Return to dashboard
       </a>
       {% endif %}
 
       <!-- Display Detokenize Response -->
       {% if detokenize_response %}
-      <div
-        class="mt-6 p-4 bg-purple-100 border border-purple-400 text-purple-700 rounded shadow"
-      >
+      <div class="mt-6 p-4 bg-purple-100 border border-purple-400 text-purple-700 rounded shadow">
         <h3 class="text-xl font-bold mb-2 text-blue-900">Detokenized Data:</h3>
         <p class="mb-2 text-sm text-gray-700 italic">
-          Click anywhere in this section to view data. Data will hide when you
-          click outside.
+          Click anywhere in this section to view data. Data will hide when you click outside.
         </p>
 
         <!-- Add tabindex to make the container focusable -->
         <div class="copy-protected focus-container" tabindex="0">
+          {% for field, value in detokenize_response.items() %}
           <p>
-            <strong>Ghana Card Number:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.ghana_card_number }}</span
-            >
+            <strong>{{ field|replace('_', ' ')|title }}:</strong>
+            <span class="data-field blur-protect hidden-data">{{ value }}</span>
           </p>
-          <p>
-            <strong>First Name:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.first_name }}</span
-            >
-          </p>
-          <p>
-            <strong>Middle Name:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.middle_name }}</span
-            >
-          </p>
-          <p>
-            <strong>Last Name:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.last_name }}</span
-            >
-          </p>
-          <p>
-            <strong>Date of Birth:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.date_of_birth }}</span
-            >
-          </p>
-          <p>
-            <strong>Place of Birth:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.place_of_birth }}</span
-            >
-          </p>
-          <p>
-            <strong>Nationality:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.nationality }}</span
-            >
-          </p>
-          <p>
-            <strong>Ethnicity:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.ethnicity }}</span
-            >
-          </p>
-          <p>
-            <strong>Marital Status:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.marital_status }}</span
-            >
-          </p>
-          <p>
-            <strong>Mother's Name:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.mother_name }}</span
-            >
-          </p>
-          <p>
-            <strong>Father's Name:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.father_name }}</span
-            >
-          </p>
-          <p>
-            <strong>Email:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.email }}</span
-            >
-          </p>
-          <p>
-            <strong>Gender:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.gender }}</span
-            >
-          </p>
-          <p>
-            <strong>Address:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.address }}</span
-            >
-          </p>
-          <p>
-            <strong>Phone Number:</strong>
-            <span class="data-field blur-protect hidden-data"
-              >{{ detokenize_response.phone_number }}</span
-            >
-          </p>
+          {% endfor %}
         </div>
       </div>
       {% endif %}
@@ -490,54 +334,11 @@
                 <td class="py-2 px-4 border-b">{{ entry.id }}</td>
                 <td class="py-2 px-4 border-b">
                   <div>
+                    {% for field, token in entry.tokens.items() %}
                     <p>
-                      <strong>Ghana Card Number:</strong> {{
-                      entry.tokens.ghana_card_number }}
+                      <strong>{{ field|replace('_', ' ')|title }}:</strong> {{ token }}
                     </p>
-                    <p>
-                      <strong>First Name:</strong> {{ entry.tokens.first_name }}
-                    </p>
-                    <p>
-                      <strong>Middle Name:</strong> {{ entry.tokens.middle_name
-                      }}
-                    </p>
-                    <p>
-                      <strong>Last Name:</strong> {{ entry.tokens.last_name }}
-                    </p>
-                    <p>
-                      <strong>Date of Birth:</strong> {{
-                      entry.tokens.date_of_birth }}
-                    </p>
-                    <p>
-                      <strong>Place of Birth:</strong> {{
-                      entry.tokens.place_of_birth }}
-                    </p>
-                    <p>
-                      <strong>Nationality:</strong> {{ entry.tokens.nationality
-                      }}
-                    </p>
-                    <p>
-                      <strong>Ethnicity:</strong> {{ entry.tokens.ethnicity }}
-                    </p>
-                    <p>
-                      <strong>Marital Status:</strong> {{
-                      entry.tokens.marital_status }}
-                    </p>
-                    <p>
-                      <strong>Mother's Name:</strong> {{
-                      entry.tokens.mother_name }}
-                    </p>
-                    <p>
-                      <strong>Father's Name:</strong> {{
-                      entry.tokens.father_name }}
-                    </p>
-                    <p><strong>Email:</strong> {{ entry.tokens.email }}</p>
-                    <p><strong>Gender:</strong> {{ entry.tokens.gender }}</p>
-                    <p><strong>Address:</strong> {{ entry.tokens.address }}</p>
-                    <p>
-                      <strong>Phone Number:</strong> {{
-                      entry.tokens.phone_number }}
-                    </p>
+                    {% endfor %}
                   </div>
                 </td>
                 <td class="py-2 px-4 border-b">{{ entry.created_at }}</td>
@@ -730,34 +531,22 @@
                 document.getElementById("detokenizeResponse").innerText =
                   data.error;
               } else {
-                const responseHtml = `
-              
-                  <div class="copy-protected focus-container" tabindex="0">
-                    <p><strong>Ghana Card Number:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.ghana_card_number}</span></p>
-                    <p><strong>First Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.first_name}</span></p>
-                    <p><strong>Middle Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.middle_name}</span></p>
-                    <p><strong>Last Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.last_name}</span></p>
-                    <p><strong>Date of Birth:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.date_of_birth}</span></p>
-                    <p><strong>Place of Birth:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.place_of_birth}</span></p>
-                    <p><strong>Nationality:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.nationality}</span></p>
-                    <p><strong>Ethnicity:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.ethnicity}</span></p>
-                    <p><strong>Marital Status:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.marital_status}</span></p>
-                    <p><strong>Mother's Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.mother_name}</span></p>
-                    <p><strong>Father's Name:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.father_name}</span></p>
-                    <p><strong>Email:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.email}</span></p>
-                    <p><strong>Gender:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.gender}</span></p>
-                    <p><strong>Address:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.address}</span></p>
-                    <p><strong>Phone Number:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${data.phone_number}</span></p>
-                  </div>
-                `;
-                document.getElementById("detokenizeResponse").innerHTML =
-                  responseHtml;
+                let responseHtml = '<div class="copy-protected focus-container" tabindex="0">';
+                
+                // Dynamically build HTML for each field in the response
+                for (const [field, value] of Object.entries(data)) {
+                  const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                  responseHtml += `
+                    <p><strong>${fieldName}:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${value}</span></p>
+                  `;
+                }
+                
+                responseHtml += '</div>';
+                document.getElementById("detokenizeResponse").innerHTML = responseHtml;
 
                 // Auto-focus the container to show data immediately
                 setTimeout(() => {
-                  const focusContainer = document.querySelector(
-                    "#detokenizeResponse .focus-container"
-                  );
+                  const focusContainer = document.querySelector("#detokenizeResponse .focus-container");
                   if (focusContainer) focusContainer.focus();
                 }, 100);
               }
