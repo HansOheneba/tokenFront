@@ -278,7 +278,9 @@
 
       <!-- Display Tokenize Response -->
       {% if tokenize_response %}
-      <div class="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow">
+      <div
+        class="mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded shadow"
+      >
         <h3 class="text-lg font-bold mb-2">ID Verification Successful</h3>
         <div>
           {% for field, token in tokenize_response.items() %}
@@ -289,17 +291,23 @@
           {% endfor %}
         </div>
       </div>
-      <a href="/dashboard" class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+      <a
+        href="/dashboard"
+        class="mt-4 inline-block bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+      >
         Return to dashboard
       </a>
       {% endif %}
 
       <!-- Display Detokenize Response -->
       {% if detokenize_response %}
-      <div class="mt-6 p-4 bg-purple-100 border border-purple-400 text-purple-700 rounded shadow">
+      <div
+        class="mt-6 p-4 bg-purple-100 border border-purple-400 text-purple-700 rounded shadow"
+      >
         <h3 class="text-xl font-bold mb-2 text-blue-900">Detokenized Data:</h3>
         <p class="mb-2 text-sm text-gray-700 italic">
-          Click anywhere in this section to view data. Data will hide when you click outside.
+          Click anywhere in this section to view data. Data will hide when you
+          click outside.
         </p>
 
         <!-- Add tabindex to make the container focusable -->
@@ -336,7 +344,8 @@
                   <div>
                     {% for field, token in entry.tokens.items() %}
                     <p>
-                      <strong>{{ field|replace('_', ' ')|title }}:</strong> {{ token }}
+                      <strong>{{ field|replace('_', ' ')|title }}:</strong> {{
+                      token }}
                     </p>
                     {% endfor %}
                   </div>
@@ -531,22 +540,28 @@
                 document.getElementById("detokenizeResponse").innerText =
                   data.error;
               } else {
-                let responseHtml = '<div class="copy-protected focus-container" tabindex="0">';
-                
+                let responseHtml =
+                  '<div class="copy-protected focus-container" tabindex="0">';
+
                 // Dynamically build HTML for each field in the response
                 for (const [field, value] of Object.entries(data)) {
-                  const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                  const fieldName = field
+                    .replace(/_/g, " ")
+                    .replace(/\b\w/g, (c) => c.toUpperCase());
                   responseHtml += `
                     <p><strong>${fieldName}:</strong> <span class="data-field blur-protect hidden-data" onclick="temporaryReveal(this)">${value}</span></p>
                   `;
                 }
-                
-                responseHtml += '</div>';
-                document.getElementById("detokenizeResponse").innerHTML = responseHtml;
+
+                responseHtml += "</div>";
+                document.getElementById("detokenizeResponse").innerHTML =
+                  responseHtml;
 
                 // Auto-focus the container to show data immediately
                 setTimeout(() => {
-                  const focusContainer = document.querySelector("#detokenizeResponse .focus-container");
+                  const focusContainer = document.querySelector(
+                    "#detokenizeResponse .focus-container"
+                  );
                   if (focusContainer) focusContainer.focus();
                 }, 100);
               }

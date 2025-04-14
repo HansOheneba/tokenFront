@@ -23,8 +23,8 @@ app = Flask(__name__)
 app.secret_key = "frontend_secret_key"
 
 # API URL
-# API_URL = "https://tokens-rho.vercel.app/"
-API_URL = "http://localhost:5002"
+API_URL = "https://tokens-rho.vercel.app/"
+# API_URL = "http://localhost:5002"
 
 TOKEN_CSV_PATH = (
     "C:/Users/HansOpoku/OneDrive - Margins Group/Desktop/tokenize/secureEnv/token.csv"
@@ -91,23 +91,25 @@ def fetch_tokenized_entries(client_id):
     table_name = f"{client_id}_tokens"
     connection = get_db_connection()
     cursor = connection.cursor(dictionary=True)
-    
+
     try:
         cursor.execute(f"SELECT id, tokens, created_at FROM {table_name}")
         entries = cursor.fetchall()
         cursor.close()
         connection.close()
-        
+
         # Process entries with dynamic fields
         processed_entries = []
         for entry in entries:
             token_data = json.loads(entry["tokens"])
             # Now token_data is a dictionary with dynamic fields
-            processed_entries.append({
-                "id": entry["id"],
-                "tokens": token_data,  # This will contain all the dynamic fields
-                "created_at": entry["created_at"],
-            })
+            processed_entries.append(
+                {
+                    "id": entry["id"],
+                    "tokens": token_data,  # This will contain all the dynamic fields
+                    "created_at": entry["created_at"],
+                }
+            )
         return processed_entries
     except mysql.connector.Error as err:
         logging.error(f"Error fetching tokens: {err}")
